@@ -1,0 +1,37 @@
+h4 {
+    margin: 0.1rem 0 0 0;
+}
+ul {
+    margin: 0.3rem 0 0 0.8rem;
+    padding: 0 0.5rem 0.3rem 0.8rem;
+    list-style: none;
+    display: none;
+}
+li {
+    margin: 0.5rem 0 0 0;
+}
+#main-area {
+    width: 14.6rem;
+    height: auto;
+    margin: 1.5rem auto;
+}
+.connect-line {
+    background: green;
+    width: 0.3rem;
+    height: 46rem;
+    position: absolute;
+    z-index: -999;
+    margin-left: 0.5rem;
+}
+.bus-info {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 1.4rem;
+}
+.bus-station-icon {
+    margin-right: 0.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 30%;
+    background: green url("./arrow-down.png") no-repeat center/70%;
+}
