@@ -6,7 +6,13 @@
     typeB: ['2503', '2521', '4676', '5321', '8914', '8975', '9032', '9077'],
     initStationId: '120000228'
   };
+
   viewBusStation(busInfo);
+
+  document.addEventListener('DOMContentLoaded', () =>
+    document.getElementById('contact').addEventListener('click', () =>
+      window.open('https://forms.gle/YU5g2hrFfcZNrSzbA', '_blank')
+    ));
 })();
 
 function viewBusStation(busInfo) {
