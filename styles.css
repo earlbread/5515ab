@@ -47,7 +47,7 @@ li {
     width: 1.3rem;
     height: 1.3rem;
     border-radius: 30%;
-    background: green url("./arrow-down.png") no-repeat center/70%;
+    background: green url("./img/arrow-down.png") no-repeat center/70%;
 }
 
 #contact {
