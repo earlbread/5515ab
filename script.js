@@ -3,7 +3,7 @@
     busNumber: 5515,
     busId: 100100252,
     typeA: ['2555', '5311', '5314', '5320', '8902', '8915'],
-    typeB: ['2503', '2521', '4676', '5321', '8914', '8975', '9032', '9077'],
+    typeB: ['2503', '2521', '4676', '5321', '8975', '9032', '9077'],
     initStationId: '120000228'
   };
 
@@ -104,12 +104,14 @@ function parseBusArrivalInfo(busArrivalInfo, busInfo) {
 
   function getBusType(busNumber) {
     let busType = '';
-    if (busInfo.typeA.find(number => number === busNumber))
+    if (busNumber === '8914')
+      busType = 'AB공동운행';
+    else if (busInfo.typeA.find(number => number === busNumber))
       busType = '5515A';
     else if (busInfo.typeB.find(number => number === busNumber))
       busType = '5515B';
     else
-      busType = 'AB 정보없음';
+      busType = 'AB정보없음';
     return busType;
   };
 
