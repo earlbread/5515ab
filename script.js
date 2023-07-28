@@ -92,15 +92,23 @@ function getBusArrivalInfo(currentTimestamp, busId, busStationId) {
 
 function parseBusArrivalInfo(busArrivalInfo, busInfo) {
   const busArrivalInfoObj = {
-    firstBusNumber: busArrivalInfo.busnum1.slice(-4),
-    secondBusNumber: busArrivalInfo.busnum2.slice(-4),
-    firstArrivalInfo: busArrivalInfo.avgs1.split(/\[|\]/),
-    secondArrivalInfo: busArrivalInfo.avgs2.split(/\[|\]/),
-    firstBusCongestion: busArrivalInfo.congestion,
-    secondBusCongestion: busArrivalInfo.congestion2
+    firstBusState: busArrivalInfo.statnm1,
+    secondBusState: busArrivalInfo.statnm2
   };
-  busArrivalInfoObj.firstBusType = getBusType(busArrivalInfoObj.firstBusNumber);
-  busArrivalInfoObj.secondBusType = getBusType(busArrivalInfoObj.secondBusNumber);
+
+  if (busArrivalInfoObj.firstBusState === '일반운행') {
+    busArrivalInfoObj.firstBusNumber = busArrivalInfo.busnum1.slice(-4);
+    busArrivalInfoObj.firstArrivalInfo = busArrivalInfo.avgs1.split(/\[|\]/);
+    busArrivalInfoObj.firstBusCongestion = busArrivalInfo.congestion;
+    busArrivalInfoObj.firstBusType = getBusType(busArrivalInfoObj.firstBusNumber);
+  };
+
+  if (busArrivalInfoObj.secondBusState === '일반운행') {
+    busArrivalInfoObj.secondBusNumber = busArrivalInfo.busnum2.slice(-4);
+    busArrivalInfoObj.secondArrivalInfo = busArrivalInfo.avgs2.split(/\[|\]/);
+    busArrivalInfoObj.secondBusCongestion = busArrivalInfo.congestion2;
+    busArrivalInfoObj.secondBusType = getBusType(busArrivalInfoObj.secondBusNumber);
+  };
 
   function getBusType(busNumber) {
     let busType = '';
@@ -119,21 +127,29 @@ function parseBusArrivalInfo(busArrivalInfo, busInfo) {
 };
 
 function drawBusArrivalInfoElement(busStationId, O) {
-  const busArrivalInfoParentEl = document.getElementById('st-' + busStationId);
+  let firstArrivalInfoContent = '';
+  let secondArrivalInfoContent = '';
 
-  const firstArrivalInfContent = O.firstArrivalInfo[0] + ' (' + (O.firstArrivalInfo[1] ? O.firstArrivalInfo[1] + ', ' : '') + O.firstBusCongestion + ') - ' + O.firstBusType;
-  const secondArrivalInfContent = O.secondArrivalInfo[0] + ' (' + (O.secondArrivalInfo[1] ? O.secondArrivalInfo[1] + ', ' : '') + O.secondBusCongestion + ') - ' + O.secondBusType;
+  if (O.firstBusState === '일반운행')
+    firstArrivalInfoContent = O.firstArrivalInfo[0] + ' (' + (O.firstArrivalInfo[1] ? O.firstArrivalInfo[1] + ', ' : '') + O.firstBusCongestion + ') - ' + O.firstBusType;
+  else firstArrivalInfoContent = O.firstBusState;
+
+  if (O.secondBusState === '일반운행')
+    secondArrivalInfoContent = O.secondArrivalInfo[0] + ' (' + (O.secondArrivalInfo[1] ? O.secondArrivalInfo[1] + ', ' : '') + O.secondBusCongestion + ') - ' + O.secondBusType;
+  else secondArrivalInfoContent = O.secondBusState;
+
+  const busArrivalInfoParentEl = document.getElementById('st-' + busStationId);
 
   const firstArrivalInfoListEl = document.createElement('li');
   const firstArrivalInfoContentEl = document.createElement('span');
   firstArrivalInfoContentEl.classList.add('bus-arrival-info1');
-  firstArrivalInfoContentEl.textContent = firstArrivalInfContent;
+  firstArrivalInfoContentEl.textContent = firstArrivalInfoContent;
   firstArrivalInfoListEl.appendChild(firstArrivalInfoContentEl);
 
   const secondArrivalInfoListEl = document.createElement('li');
   const secondArrivalInfoContentEl = document.createElement('span');
   secondArrivalInfoContentEl.classList.add('bus-arrival-info2');
-  secondArrivalInfoContentEl.textContent = secondArrivalInfContent;
+  secondArrivalInfoContentEl.textContent = secondArrivalInfoContent;
   secondArrivalInfoListEl.appendChild(secondArrivalInfoContentEl);
 
   busArrivalInfoParentEl.appendChild(firstArrivalInfoListEl);
