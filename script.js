@@ -64,6 +64,7 @@ function drawBusStationElement(busInfo, busStationInfoList) {
     const busArrivalInfoEl = document.createElement('ul');
     busArrivalInfoEl.setAttribute('id', 'st-' + busStation.stationId);
     busInfoEl.appendChild(busArrivalInfoEl);
+
     busInfoEl.addEventListener('click', () => {
       resetBusArrivalInfo();
       viewBusArrivalInfo(busInfo, busStation.stationId);
@@ -75,9 +76,10 @@ function drawBusStationElement(busInfo, busStationInfoList) {
 
 function viewBusArrivalInfo(busInfo, busStationId) {
   getBusArrivalInfo(Date.now(), busInfo.busId, busStationId)
-    .then(busArrivalInfo => {
-      const busArrivalInfoObj = parseBusArrivalInfo(busArrivalInfo, busInfo);
-      drawBusArrivalInfoElement(busStationId, busArrivalInfoObj);
+    .then(busArrivalInfoRawData => {
+      const firstArrivalBusInfo = parseBusArrivalInfo(1, busArrivalInfoRawData, busInfo.typeA, busInfo.typeB);
+      const secondArrivalBusInfo = parseBusArrivalInfo(2, busArrivalInfoRawData, busInfo.typeA, busInfo.typeB);
+      drawBusArrivalInfoElement(busStationId, { firstArrivalBusInfo, secondArrivalBusInfo });
     })
 };
 
@@ -90,73 +92,64 @@ function getBusArrivalInfo(currentTimestamp, busId, busStationId) {
     .catch(error => console.error('BUS ARRIVAL INFO ERROR:', error));
 };
 
-function parseBusArrivalInfo(busArrivalInfo, busInfo) {
-  const busArrivalInfoObj = {
-    firstBusState: busArrivalInfo.statnm1,
-    secondBusState: busArrivalInfo.statnm2
+function parseBusArrivalInfo(arrivalBusOrder, busArrivalInfoRawData, busTypeListA, busTypeListB) {
+  if (arrivalBusOrder === 1) busArrivalInfoRawData.congestion1 = busArrivalInfoRawData.congestion;
+
+  let busArrivalInfoResult = {
+    runningStatus: busArrivalInfoRawData[`statnm${arrivalBusOrder}`],
+    busNumber: '',
+    arrivalInfo: [],
+    congestion: '',
+    busType: ''
   };
 
-  if (busArrivalInfoObj.firstBusState === '일반운행') {
-    busArrivalInfoObj.firstBusNumber = busArrivalInfo.busnum1.slice(-4);
-    busArrivalInfoObj.firstArrivalInfo = busArrivalInfo.avgs1.split(/\[|\]/);
-    busArrivalInfoObj.firstBusCongestion = busArrivalInfo.congestion;
-    busArrivalInfoObj.firstBusType = getBusType(busArrivalInfoObj.firstBusNumber);
-  };
+  if (busArrivalInfoResult.runningStatus !== '운행종료') {
+    busArrivalInfoResult.busNumber = busArrivalInfoRawData[`busnum${arrivalBusOrder}`].slice(-4);
+    busArrivalInfoResult.arrivalInfo = busArrivalInfoRawData[`avgs${arrivalBusOrder}`].split(/\[|\]/);
+    busArrivalInfoResult.congestion = busArrivalInfoRawData[`congestion${arrivalBusOrder}`];
+    busArrivalInfoResult.busType = getBusType(busArrivalInfoResult.busNumber, busTypeListA, busTypeListB);
+  }
 
-  if (busArrivalInfoObj.secondBusState === '일반운행') {
-    busArrivalInfoObj.secondBusNumber = busArrivalInfo.busnum2.slice(-4);
-    busArrivalInfoObj.secondArrivalInfo = busArrivalInfo.avgs2.split(/\[|\]/);
-    busArrivalInfoObj.secondBusCongestion = busArrivalInfo.congestion2;
-    busArrivalInfoObj.secondBusType = getBusType(busArrivalInfoObj.secondBusNumber);
-  };
-
-  function getBusType(busNumber) {
-    let busType = '';
+  function getBusType(busNumber, busTypeListA, busTypeListB) {
     if (busNumber === '8914')
-      busType = 'AB공동운행';
-    else if (busInfo.typeA.find(number => number === busNumber))
-      busType = '5515A';
-    else if (busInfo.typeB.find(number => number === busNumber))
-      busType = '5515B';
+      return 'AB공동운행';
+    else if (busTypeListA.includes(busNumber))
+      return '5515A';
+    else if (busTypeListB.includes(busNumber))
+      return '5515B';
     else
-      busType = 'AB정보없음';
-    return busType;
+      return 'AB정보없음';
   };
 
-  return busArrivalInfoObj;
+  return busArrivalInfoResult;
 };
 
-function drawBusArrivalInfoElement(busStationId, O) {
-  let firstArrivalInfoContent = '';
-  let secondArrivalInfoContent = '';
-
-  if (O.firstBusState === '일반운행')
-    firstArrivalInfoContent = O.firstArrivalInfo[0] + ' (' + (O.firstArrivalInfo[1] ? O.firstArrivalInfo[1] + ', ' : '') + O.firstBusCongestion + ') - ' + O.firstBusType;
-  else firstArrivalInfoContent = O.firstBusState;
-
-  if (O.secondBusState === '일반운행')
-    secondArrivalInfoContent = O.secondArrivalInfo[0] + ' (' + (O.secondArrivalInfo[1] ? O.secondArrivalInfo[1] + ', ' : '') + O.secondBusCongestion + ') - ' + O.secondBusType;
-  else secondArrivalInfoContent = O.secondBusState;
-
+function drawBusArrivalInfoElement(busStationId, busArrivalInfoResult) {
   const busArrivalInfoParentEl = document.getElementById('st-' + busStationId);
 
-  const firstArrivalInfoListEl = document.createElement('li');
-  const firstArrivalInfoContentEl = document.createElement('span');
-  firstArrivalInfoContentEl.classList.add('bus-arrival-info1');
-  firstArrivalInfoContentEl.textContent = firstArrivalInfoContent;
-  firstArrivalInfoListEl.appendChild(firstArrivalInfoContentEl);
+  const firstArrivalInfoEl = createBusArrivalInfoElement(1, busArrivalInfoResult.firstArrivalBusInfo);
+  const secondArrivalInfoEl = createBusArrivalInfoElement(2, busArrivalInfoResult.secondArrivalBusInfo);
 
-  const secondArrivalInfoListEl = document.createElement('li');
-  const secondArrivalInfoContentEl = document.createElement('span');
-  secondArrivalInfoContentEl.classList.add('bus-arrival-info2');
-  secondArrivalInfoContentEl.textContent = secondArrivalInfoContent;
-  secondArrivalInfoListEl.appendChild(secondArrivalInfoContentEl);
-
-  busArrivalInfoParentEl.appendChild(firstArrivalInfoListEl);
-  busArrivalInfoParentEl.appendChild(secondArrivalInfoListEl);
+  busArrivalInfoParentEl.appendChild(firstArrivalInfoEl);
+  busArrivalInfoParentEl.appendChild(secondArrivalInfoEl);
 
   busArrivalInfoParentEl.style.display = 'block';
   busArrivalInfoParentEl.style.backgroundColor = '#eee';
+
+  function createBusArrivalInfoElement(arrivalBusOrder, busArrivalInfo) {
+    let arrivalInfoContent = '';
+
+    if (busArrivalInfo.runningStatus === '운행종료') arrivalInfoContent = busArrivalInfo.runningStatus;
+    else arrivalInfoContent = busArrivalInfo.arrivalInfo[0] + ' (' + (busArrivalInfo.arrivalInfo[1] ? busArrivalInfo.arrivalInfo[1] + ', ' : '') + busArrivalInfo.congestion + ') - ' + busArrivalInfo.busType;
+
+    const arrivalInfoListEl = document.createElement('li');
+    const arrivalInfoContentEl = document.createElement('span');
+    arrivalInfoContentEl.classList.add('bus-arrival-info' + arrivalBusOrder);
+    arrivalInfoContentEl.textContent = arrivalInfoContent;
+    arrivalInfoListEl.appendChild(arrivalInfoContentEl);
+
+    return arrivalInfoListEl;
+  }
 };
 
 function resetBusArrivalInfo() {
