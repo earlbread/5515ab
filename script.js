@@ -112,7 +112,7 @@ function parseBusArrivalInfo(arrivalBusOrder, busArrivalInfoRawData, busTypeList
 
   function getBusType(busNumber, busTypeListA, busTypeListB) {
     if (busNumber === '8914')
-      return 'AB공동운행';
+      return 'AB변동버스';
     else if (busTypeListA.includes(busNumber))
       return '5515A';
     else if (busTypeListB.includes(busNumber))
