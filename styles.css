@@ -10,14 +10,23 @@ h4 {
 }
 
 ul {
-    margin: 0.3rem 0 0 0.8rem;
-    padding: 0 0.8rem 0.5rem 0.8rem;
+    margin: 0.5rem 0 0 1.1rem;
+    padding: 0;
     list-style: none;
     display: none;
 }
 
-li {
-    margin: 0.4rem 0 0 0;
+li:first-child {
+    margin-bottom: 0.5rem;
+}
+
+li::after {
+    display: block;
+    width: 0;
+    content: '';
+    border-top: 1rem solid #eee;
+    border-right: 1rem solid transparent;
+    margin-left: 1.5rem;
 }
 
 #main-area {
@@ -29,7 +38,7 @@ li {
 .connect-line {
     background: green;
     width: 0.3rem;
-    height: 46.9rem;
+    height: 48.5rem;
     position: absolute;
     z-index: -999;
     margin-left: 0.5rem;
@@ -40,6 +49,12 @@ li {
     flex-wrap: wrap;
     margin-top: 1.4rem;
     white-space: nowrap;
+}
+
+.bus-arrival-info1,
+.bus-arrival-info2 {
+    background-color: #eee;
+    padding: 0.5rem;
 }
 
 .bus-station-icon {

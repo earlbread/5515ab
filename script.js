@@ -52,6 +52,10 @@ function drawBusStationElement(busInfo, busStationInfoList) {
     const busInfoEl = document.createElement('div');
     busInfoEl.classList.add('bus-info');
 
+    const busArrivalInfoEl = document.createElement('ul');
+    busArrivalInfoEl.setAttribute('id', 'st-' + busStation.stationId);
+    busInfoEl.appendChild(busArrivalInfoEl);
+
     const busStationIconEl = document.createElement('div');
     busStationIconEl.classList.add('bus-station-icon');
     busInfoEl.appendChild(busStationIconEl);
@@ -60,10 +64,6 @@ function drawBusStationElement(busInfo, busStationInfoList) {
     busStationNameEl.classList.add('bus-station-name');
     busStationNameEl.textContent = busStation.stationName;
     busInfoEl.appendChild(busStationNameEl);
-
-    const busArrivalInfoEl = document.createElement('ul');
-    busArrivalInfoEl.setAttribute('id', 'st-' + busStation.stationId);
-    busInfoEl.appendChild(busArrivalInfoEl);
 
     busInfoEl.addEventListener('click', () => {
       resetBusArrivalInfo();
@@ -130,11 +130,10 @@ function drawBusArrivalInfoElement(busStationId, busArrivalInfoResult) {
   const firstArrivalInfoEl = createBusArrivalInfoElement(1, busArrivalInfoResult.firstArrivalBusInfo);
   const secondArrivalInfoEl = createBusArrivalInfoElement(2, busArrivalInfoResult.secondArrivalBusInfo);
 
-  busArrivalInfoParentEl.appendChild(firstArrivalInfoEl);
   busArrivalInfoParentEl.appendChild(secondArrivalInfoEl);
+  busArrivalInfoParentEl.appendChild(firstArrivalInfoEl);
 
   busArrivalInfoParentEl.style.display = 'block';
-  busArrivalInfoParentEl.style.backgroundColor = '#eee';
 
   function createBusArrivalInfoElement(arrivalBusOrder, busArrivalInfo) {
     let arrivalInfoContent = '';
