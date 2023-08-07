@@ -111,7 +111,11 @@ function parseArrivalInfo(arrivalOrder, arrivalInfoRaw, busTypeListA, busTypeLis
   return arrivalInfoResult;
 };
 
-  return busArrivalInfoResult;
+function extractArrivalInfo(arrivalInfoRawString) {
+  return arrivalInfoRawString
+    .split(/\[|\]/)
+    .map(str => str.trim())
+    .filter(str => str && str !== '막차');
 };
 
 function getBusType(busNumber, busTypeListA, busTypeListB) {
@@ -133,11 +137,15 @@ function drawArrivalInfoElement(stationId, { firstArrivalInfo, secondArrivalInfo
   arrivalInfoParentEl.style.display = 'block';
 };
 
-  function createBusArrivalInfoElement(arrivalBusOrder, busArrivalInfo) {
-    let arrivalInfoContent = '';
+function createArrivalInfoElement(arrivalOrder, busArrivalInfo) {
+  const { runningStatus, arrivalInfo, congestion, busType } = busArrivalInfo;
+  const [arrivalTime, beforeStation] = arrivalInfo;
+  const isLastBus = runningStatus === '막차운행' ? '(막차)' : '';
+  let arrivalInfoContent = '';
 
-    if (busArrivalInfo.runningStatus === '운행종료') arrivalInfoContent = busArrivalInfo.runningStatus;
-    else arrivalInfoContent = busArrivalInfo.arrivalInfo[0] + ' (' + (busArrivalInfo.arrivalInfo[1] ? busArrivalInfo.arrivalInfo[1] + ', ' : '') + busArrivalInfo.congestion + ') - ' + busArrivalInfo.busType;
+  if (runningStatus === '운행종료') arrivalInfoContent = runningStatus;
+  else if (beforeStation) arrivalInfoContent = `${arrivalTime} (${beforeStation}, ${congestion}) - ${busType}${isLastBus}`;
+  else arrivalInfoContent = `${arrivalTime} (${congestion}) - ${busType}${isLastBus}`;
 
   const arrivalInfoListEl = document.createElement('li');
   const arrivalInfoContentEl = document.createElement('span');
