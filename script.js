@@ -7,7 +7,7 @@
     initStationId: '120000228'
   };
 
-  viewBusStation(busInfo);
+  viewStation(busInfo);
 
   document.addEventListener('DOMContentLoaded', () =>
     document.getElementById('contact').addEventListener('click', () =>
@@ -15,125 +15,123 @@
     ));
 })();
 
-function viewBusStation(busInfo) {
-  getBusStationData(Date.now(), busInfo)
-    .then(busStationData => {
-      const busStationInfoList = createBusStationList(busStationData);
-      drawBusStationElement(busInfo, busStationInfoList);
-      viewBusArrivalInfo(busInfo, busInfo.initStationId);
+function viewStation(busInfo) {
+  getStationData(Date.now(), busInfo.busId)
+    .then(stationData => {
+      const stationInfoList = createStationList(stationData);
+      drawStationElement(busInfo, stationInfoList);
+      viewArrivalInfo(busInfo, busInfo.initStationId);
     })
 };
 
-function getBusStationData(currentTimestamp, busInfo) {
-  const busStationDataFetchUrl = `https://bus.go.kr/sbus/bus/selectBusposInfo.do?_dc=${currentTimestamp}&routeId=${busInfo.busId}&isLowBus=N`;
+function getStationData(currentTimestamp, busId) {
+  const stationDataFetchUrl = `https://bus.go.kr/sbus/bus/selectBusposInfo.do?_dc=${currentTimestamp}&routeId=${busId}&isLowBus=N`;
 
-  return fetch(busStationDataFetchUrl)
+  return fetch(stationDataFetchUrl)
     .then(response => response.json())
     .then(data => data.ResponseVO.data.resultRouteStop)
     .catch(error => console.error('BUS STATION DATA ERROR:', error));
 };
 
-function createBusStationList(busStationData) {
-  const busStationInfoList = [];
-  for (let i = 16; i < 32; i++) {
-    const busStationInfoObj = {
-      stationId: busStationData[i].station,
-      stationName: busStationData[i].stationName
-    };
-    busStationInfoList.push(busStationInfoObj);
-  }
-  return busStationInfoList;
+function createStationList(stationData) {
+  const END_INDEX = stationData.length;
+  const START_INDEX = END_INDEX / 2;
+
+  return stationData.slice(START_INDEX, END_INDEX).map(stationData => ({
+    stationId: stationData.station,
+    stationName: stationData.stationName
+  }));
 };
 
-function drawBusStationElement(busInfo, busStationInfoList) {
+function drawStationElement(busInfo, stationInfoList) {
   const busInfoParentEl = document.getElementById('main-area');
 
-  busStationInfoList.forEach(busStation => {
+  stationInfoList.forEach(station => {
     const busInfoEl = document.createElement('div');
     busInfoEl.classList.add('bus-info');
 
-    const busArrivalInfoEl = document.createElement('ul');
-    busArrivalInfoEl.setAttribute('id', 'st-' + busStation.stationId);
-    busInfoEl.appendChild(busArrivalInfoEl);
+    const arrivalInfoEl = document.createElement('ul');
+    arrivalInfoEl.setAttribute('id', 'st-' + station.stationId);
+    busInfoEl.appendChild(arrivalInfoEl);
 
-    const busStationIconEl = document.createElement('div');
-    busStationIconEl.classList.add('bus-station-icon');
-    busInfoEl.appendChild(busStationIconEl);
+    const stationIconEl = document.createElement('div');
+    stationIconEl.classList.add('bus-station-icon');
+    busInfoEl.appendChild(stationIconEl);
 
-    const busStationNameEl = document.createElement('h4');
-    busStationNameEl.classList.add('bus-station-name');
-    busStationNameEl.textContent = busStation.stationName;
-    busInfoEl.appendChild(busStationNameEl);
+    const stationNameEl = document.createElement('h4');
+    stationNameEl.classList.add('bus-station-name');
+    stationNameEl.textContent = station.stationName;
+    busInfoEl.appendChild(stationNameEl);
 
     busInfoEl.addEventListener('click', () => {
-      resetBusArrivalInfo();
-      viewBusArrivalInfo(busInfo, busStation.stationId);
+      resetArrivalInfo();
+      viewArrivalInfo(busInfo, station.stationId);
     });
 
     busInfoParentEl.appendChild(busInfoEl);
   });
 };
 
-function viewBusArrivalInfo(busInfo, busStationId) {
-  getBusArrivalInfo(Date.now(), busInfo.busId, busStationId)
-    .then(busArrivalInfoRawData => {
-      const firstArrivalBusInfo = parseBusArrivalInfo(1, busArrivalInfoRawData, busInfo.typeA, busInfo.typeB);
-      const secondArrivalBusInfo = parseBusArrivalInfo(2, busArrivalInfoRawData, busInfo.typeA, busInfo.typeB);
-      drawBusArrivalInfoElement(busStationId, { firstArrivalBusInfo, secondArrivalBusInfo });
+function viewArrivalInfo(busInfo, stationId) {
+  getArrivalInfo(Date.now(), busInfo.busId, stationId)
+    .then(arrivalInfoRaw => {
+      const firstArrivalInfo = parseArrivalInfo(1, arrivalInfoRaw, busInfo.typeA, busInfo.typeB);
+      const secondArrivalInfo = parseArrivalInfo(2, arrivalInfoRaw, busInfo.typeA, busInfo.typeB);
+      drawArrivalInfoElement(stationId, { firstArrivalInfo, secondArrivalInfo });
     })
 };
 
-function getBusArrivalInfo(currentTimestamp, busId, busStationId) {
-  const busArrivalInfoFetchUrl = `https://bus.go.kr/sbus/bus/selectBusArrive.do?_dc=${currentTimestamp}&rtid=${busId}&stnuid=&rttp=&stopId=${busStationId}&stopOrd=&rtnm=`;
+function getArrivalInfo(currentTimestamp, busId, stationId) {
+  const arrivalInfoFetchUrl = `https://bus.go.kr/sbus/bus/selectBusArrive.do?_dc=${currentTimestamp}&rtid=${busId}&stnuid=&rttp=&stopId=${stationId}&stopOrd=&rtnm=`;
 
-  return fetch(busArrivalInfoFetchUrl)
+  return fetch(arrivalInfoFetchUrl)
     .then(response => response.json())
     .then(data => data.ResponseVO.data.resultList[0])
     .catch(error => console.error('BUS ARRIVAL INFO ERROR:', error));
 };
 
-function parseBusArrivalInfo(arrivalBusOrder, busArrivalInfoRawData, busTypeListA, busTypeListB) {
-  if (arrivalBusOrder === 1) busArrivalInfoRawData.congestion1 = busArrivalInfoRawData.congestion;
+function parseArrivalInfo(arrivalOrder, arrivalInfoRaw, busTypeListA, busTypeListB) {
+  if (arrivalOrder === 1) arrivalInfoRaw.congestion1 = arrivalInfoRaw.congestion;
 
-  let busArrivalInfoResult = {
-    runningStatus: busArrivalInfoRawData[`statnm${arrivalBusOrder}`],
+  let arrivalInfoResult = {
+    runningStatus: arrivalInfoRaw[`statnm${arrivalOrder}`],
     busNumber: '',
     arrivalInfo: [],
     congestion: '',
     busType: ''
   };
 
-  if (busArrivalInfoResult.runningStatus !== '운행종료') {
-    busArrivalInfoResult.busNumber = busArrivalInfoRawData[`busnum${arrivalBusOrder}`].slice(-4);
-    busArrivalInfoResult.arrivalInfo = busArrivalInfoRawData[`avgs${arrivalBusOrder}`].split(/\[|\]/);
-    busArrivalInfoResult.congestion = busArrivalInfoRawData[`congestion${arrivalBusOrder}`];
-    busArrivalInfoResult.busType = getBusType(busArrivalInfoResult.busNumber, busTypeListA, busTypeListB);
+  if (arrivalInfoResult.runningStatus !== '운행종료') {
+    arrivalInfoResult.busNumber = arrivalInfoRaw[`busnum${arrivalOrder}`].slice(-4);
+    arrivalInfoResult.arrivalInfo = extractArrivalInfo(arrivalInfoRaw[`avgs${arrivalOrder}`]);
+    arrivalInfoResult.congestion = arrivalInfoRaw[`congestion${arrivalOrder}`];
+    arrivalInfoResult.busType = getBusType(arrivalInfoResult.busNumber, busTypeListA, busTypeListB);
   }
 
-  function getBusType(busNumber, busTypeListA, busTypeListB) {
-    if (busNumber === '8914')
-      return 'AB변동버스';
-    else if (busTypeListA.includes(busNumber))
-      return '5515A';
-    else if (busTypeListB.includes(busNumber))
-      return '5515B';
-    else
-      return 'AB정보없음';
-  };
+  return arrivalInfoResult;
+};
 
   return busArrivalInfoResult;
 };
 
-function drawBusArrivalInfoElement(busStationId, busArrivalInfoResult) {
-  const busArrivalInfoParentEl = document.getElementById('st-' + busStationId);
+function getBusType(busNumber, busTypeListA, busTypeListB) {
+  if (busNumber === '8914') return 'AB변동버스';
+  if (busTypeListA.includes(busNumber)) return '5515A';
+  if (busTypeListB.includes(busNumber)) return '5515B';
+  return 'AB정보없음';
+};
 
-  const firstArrivalInfoEl = createBusArrivalInfoElement(1, busArrivalInfoResult.firstArrivalBusInfo);
-  const secondArrivalInfoEl = createBusArrivalInfoElement(2, busArrivalInfoResult.secondArrivalBusInfo);
+function drawArrivalInfoElement(stationId, { firstArrivalInfo, secondArrivalInfo }) {
+  const arrivalInfoParentEl = document.getElementById('st-' + stationId);
 
-  busArrivalInfoParentEl.appendChild(secondArrivalInfoEl);
-  busArrivalInfoParentEl.appendChild(firstArrivalInfoEl);
+  const firstArrivalInfoEl = createArrivalInfoElement(1, firstArrivalInfo);
+  const secondArrivalInfoEl = createArrivalInfoElement(2, secondArrivalInfo);
 
-  busArrivalInfoParentEl.style.display = 'block';
+  arrivalInfoParentEl.appendChild(secondArrivalInfoEl);
+  arrivalInfoParentEl.appendChild(firstArrivalInfoEl);
+
+  arrivalInfoParentEl.style.display = 'block';
+};
 
   function createBusArrivalInfoElement(arrivalBusOrder, busArrivalInfo) {
     let arrivalInfoContent = '';
@@ -141,17 +139,16 @@ function drawBusArrivalInfoElement(busStationId, busArrivalInfoResult) {
     if (busArrivalInfo.runningStatus === '운행종료') arrivalInfoContent = busArrivalInfo.runningStatus;
     else arrivalInfoContent = busArrivalInfo.arrivalInfo[0] + ' (' + (busArrivalInfo.arrivalInfo[1] ? busArrivalInfo.arrivalInfo[1] + ', ' : '') + busArrivalInfo.congestion + ') - ' + busArrivalInfo.busType;
 
-    const arrivalInfoListEl = document.createElement('li');
-    const arrivalInfoContentEl = document.createElement('span');
-    arrivalInfoContentEl.classList.add('bus-arrival-info' + arrivalBusOrder);
-    arrivalInfoContentEl.textContent = arrivalInfoContent;
-    arrivalInfoListEl.appendChild(arrivalInfoContentEl);
+  const arrivalInfoListEl = document.createElement('li');
+  const arrivalInfoContentEl = document.createElement('span');
+  arrivalInfoContentEl.classList.add(`bus-arrival-info${arrivalOrder}`);
+  arrivalInfoContentEl.textContent = arrivalInfoContent;
+  arrivalInfoListEl.appendChild(arrivalInfoContentEl);
 
-    return arrivalInfoListEl;
-  }
+  return arrivalInfoListEl;
 };
 
-function resetBusArrivalInfo() {
+function resetArrivalInfo() {
   document.querySelectorAll('ul').forEach(arrivalInfo => {
     arrivalInfo.style.display = 'none';
     arrivalInfo.innerHTML = '';
