@@ -140,12 +140,12 @@ function drawArrivalInfoElement(stationId, { firstArrivalInfo, secondArrivalInfo
 function createArrivalInfoElement(arrivalOrder, busArrivalInfo) {
   const { runningStatus, arrivalInfo, congestion, busType } = busArrivalInfo;
   const [arrivalTime, beforeStation] = arrivalInfo;
-  const isLastBus = runningStatus === '막차운행' ? '(막차)' : '';
+  const lastBus = runningStatus === '막차운행' ? '(막차)' : '';
   let arrivalInfoContent = '';
 
   if (runningStatus === '운행종료') arrivalInfoContent = runningStatus;
-  else if (beforeStation) arrivalInfoContent = `${arrivalTime} (${beforeStation}, ${congestion}) - ${busType}${isLastBus}`;
-  else arrivalInfoContent = `${arrivalTime} (${congestion}) - ${busType}${isLastBus}`;
+  else if (beforeStation) arrivalInfoContent = `${arrivalTime} (${beforeStation}, ${congestion}) - ${busType}${lastBus}`;
+  else arrivalInfoContent = `${arrivalTime} (${congestion}) - ${busType}${lastBus}`;
 
   const arrivalInfoListEl = document.createElement('li');
   const arrivalInfoContentEl = document.createElement('span');
@@ -158,7 +158,7 @@ function createArrivalInfoElement(arrivalOrder, busArrivalInfo) {
 
 function resetArrivalInfo() {
   document.querySelectorAll('ul').forEach(arrivalInfo => {
-    arrivalInfo.style.display = 'none';
     arrivalInfo.innerHTML = '';
+    arrivalInfo.style.display = 'none';
   });
 };
