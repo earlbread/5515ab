@@ -101,7 +101,7 @@ function parseArrivalInfo(arrivalOrder, arrivalInfoRaw, busTypeListA, busTypeLis
     busType: ''
   };
 
-  if (arrivalInfoResult.runningStatus !== '운행종료') {
+  if (isRunningBus(arrivalInfoResult.runningStatus)) {
     arrivalInfoResult.busNumber = arrivalInfoRaw[`busnum${arrivalOrder}`].slice(-4);
     arrivalInfoResult.arrivalInfo = extractArrivalInfo(arrivalInfoRaw[`avgs${arrivalOrder}`]);
     arrivalInfoResult.congestion = arrivalInfoRaw[`congestion${arrivalOrder}`];
@@ -110,6 +110,10 @@ function parseArrivalInfo(arrivalOrder, arrivalInfoRaw, busTypeListA, busTypeLis
 
   return arrivalInfoResult;
 };
+
+function isRunningBus(runningStatus) {
+  return runningStatus === '일반운행' || runningStatus === '막차운행' || runningStatus === '첫차운행';
+}
 
 function extractArrivalInfo(arrivalInfoRawString) {
   return arrivalInfoRawString
@@ -143,7 +147,7 @@ function createArrivalInfoElement(arrivalOrder, busArrivalInfo) {
   const lastBus = runningStatus === '막차운행' ? '(막차)' : '';
   let arrivalInfoContent = '';
 
-  if (runningStatus === '운행종료') arrivalInfoContent = runningStatus;
+  if (!isRunningBus(runningStatus)) arrivalInfoContent = runningStatus;
   else if (beforeStation) arrivalInfoContent = `${arrivalTime} (${beforeStation}, ${congestion}) - ${busType}${lastBus}`;
   else arrivalInfoContent = `${arrivalTime} (${congestion}) - ${busType}${lastBus}`;
 
